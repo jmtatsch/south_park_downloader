@@ -4,7 +4,7 @@
 """
 South Park Downloader.
 
-A module to scrape videos from southpark.de
+A module to scrape videos from southpark.de or southpark.cc.com
 """
 
 from __future__ import unicode_literals
@@ -17,7 +17,7 @@ import youtube_dl
 ydl_opts = {'outtmpl': 'raw/%(title)s.%(ext)s'}
 
 
-def download_all_episodes(language="english"):
+def download_all_episodes(language, basepath):
     """Download all episodes from all seasons."""
     database_path = os.path.join(os.path.dirname(__file__), 'seasons.json')
     with open(database_path) as f:
@@ -25,22 +25,23 @@ def download_all_episodes(language="english"):
     for season_dict in db["seasons"]:
         season = int(season_dict["season"])
         for episode in range(1, int(season_dict["episodes"]) + 1):
-            download_episode(season, episode, language)
+            download_episode(season, episode, language, basepath)
 
 
-def download_episode(season, episode, language):
+def download_episode(season, episode, language, basepath):
     """Download an episode from a season."""
     ep_string = "s{:02}e{:02}".format(season, episode)
     print("Downloading {} in {}".format(ep_string, language))
-    if language is 'german':
+    if language == 'german':
         url = "http://www.southpark.de/alle-episoden/{}"
-    elif language is 'english':
+    elif language == 'english':
         url = "https://southpark.cc.com/full-episodes/{}"
     else:
         print("Unsupported language: {}".format(language))
     season_dir = "Season {}".format(season)
-    if not os.path.exists(season_dir):
-        os.makedirs(season_dir)
+    season_path = os.path.join(basepath, "South Park", season_dir)
+    if not os.path.exists(season_path):
+        os.makedirs(season_path)
 
     # Download the raw episode
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -53,7 +54,7 @@ def download_episode(season, episode, language):
     with open(input_file_name, 'a') as f:
         for part in sorted(part_list):
             f.write("file '" + part + '\'\n')
-    cmd = "ffmpeg -f concat -safe 0 -i {} -c copy \"{}/South Park - S{:02}E{:02} - {}.mp4\"".format(input_file_name, season_dir, season, episode, episode_title)
+    cmd = "ffmpeg -f concat -safe 0 -i {} -c copy \"{}/South Park - S{:02}E{:02} - {}.mp4\"".format(input_file_name, season_path, season, episode, episode_title)
     os.system(cmd)
 
     # Clean up

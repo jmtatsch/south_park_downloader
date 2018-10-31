@@ -16,7 +16,7 @@ south_park_downloader
 
 
 
-A little helper to download South Park episodes from soutpark.de
+A little helper to download South Park episodes from southpark.de
 
 
 * Free software: MIT license
